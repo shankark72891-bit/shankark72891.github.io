@@ -1,9 +1,819 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SHANKAR HOME TUITION</title><style>body{font-family:Arial;margin:0;background:#f4f6f8}header{background:#17365d;color:#fff;text-align:center;padding:18px}main{max-width:850px;margin:auto;padding:15px}.card{background:#fff;padding:20px;margin:15px 0;border-radius:12px;box-shadow:0 2px 8px #0002}button{padding:12px 16px;margin:5px;border:0;border-radius:8px}.b{background:#17365d;color:#fff}.g{background:#198754;color:#fff}.r{background:#dc3545;color:#fff}.x{background:#ddd}input,select,textarea{width:100%;box-sizing:border-box;padding:11px;margin:6px 0 12px;border:1px solid #bbb;border-radius:7px;font-size:15px}textarea{min-height:75px}.page{display:none}.show{display:block}.menu button{width:100%;text-align:left}.lock{background:#eee}.wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #ddd;padding:8px}th{background:#17365d;color:#fff}.total{font-weight:bold}</style></head><body><header><h1>SHANKAR HOME TUITION</h1><p>Faculty Attendance Management – Demo</p></header><main>
-<section id="login" class="page show"><div class="card"><h2>Faculty Login</h2><label>Username</label><input id="lu" value="faculty"><label>Password</label><input id="lp" type="password" value="1234"><button class="b" onclick="login()">Login</button><p>Demo Login: faculty / 1234</p></div></section>
-<section id="dashboard" class="page"><div class="card"><h2>Dashboard</h2><p>Welcome, <b id="welcome"></b></p><div class="menu"><button class="g" onclick="page('start')">🟢 Start Tuition</button><button class="r" onclick="page('end');loadEnd()">🔴 End Tuition</button><button class="b" onclick="page('attendance');loadAttendance()">📋 My Attendance</button><button class="b" onclick="page('report');loadReport()">📊 Student-wise / Monthly Report</button><button class="x" onclick="page('settings')">⚙️ Change Username / Password</button><button class="r" onclick="logout()">🚪 Logout</button></div></div></section>
-<section id="start" class="page"><div class="card"><h2>🟢 Start Tuition</h2><label>Date</label><input id="sd" readonly><label>Student</label><select id="student"><option value="">Select Student</option><option>Eeshwar</option><option>Nagulesh</option></select><label>In Time</label><input id="in" type="time"><label>Description / Class Session</label><textarea id="desc" placeholder="Example: Mathematics - Proportional Reasoning"></textarea><button class="g" onclick="start()">Save / Start Tuition</button><button class="x" onclick="page('dashboard')">Back</button></div></section>
-<section id="end" class="page"><div class="card"><h2>🔴 End Tuition</h2><div id="endbox"></div><button class="x" onclick="page('dashboard')">Back</button></div></section>
-<section id="attendance" class="page"><div class="card"><h2>📋 My Attendance</h2><div id="attbox"></div><button class="x" onclick="page('dashboard')">Back</button></div></section>
-<section id="report" class="page"><div class="card"><h2>📊 Student-wise / Monthly Report</h2><label>Month</label><input id="month" type="month" onchange="loadReport()"><label>Student</label><select id="rstudent" onchange="loadReport()"><option>All Students</option><option>Eeshwar</option><option>Nagulesh</option></select><div id="reportbox"></div><button class="x" onclick="page('dashboard')">Back</button></div></section>
-<section id="settings" class="page"><div class="card"><h2>⚙️ Change Username / Password</h2><label>New Username</label><input id="nu"><label>New Password</label><input id="np" type="password"><button class="b" onclick="settings()">Save Changes</button><button class="x" onclick="page('dashboard')">Back</button></div></section></main>
-<script>const RK='shankarRecords';function records(){return JSON.parse(localStorage.getItem(RK)||'[]')}function today(){let d=new Date();return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear()}function page(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('show'));document.getElementById(id).classList.add('show');if(id==='start')sd.value=today()}function login(){let u=localStorage.getItem('tu')||'faculty',p=localStorage.getItem('tp')||'1234';if(lu.value===u&&lp.value===p){welcome.textContent=u;page('dashboard')}else alert('Invalid username or password')}function logout(){page('login')}function start(){let s=student.value,t=in.value,d=desc.value;if(!s||!t)return alert('Please select Student and enter In Time.');if(localStorage.getItem('active'))return alert('An active tuition already exists.');localStorage.setItem('active',JSON.stringify({date:today(),student:s,inTime:t,description:d}));alert('In Time saved successfully. It is now LOCKED.');student.value='';in.value='';desc.value='';page('dashboard')}function loadEnd(){let a=JSON.parse(localStorage.getItem('active')||'null');if(!a){endbox.innerHTML='<p>No tuition session is waiting for Out Time.</p>';return}endbox.innerHTML='<label>Date</label><input class="lock" readonly value="'+a.date+'"><label>Student</label><input class="lock" readonly value="'+a.student+'"><label>In Time 🔒</label><input class="lock" readonly value="'+a.inTime+'"><label>Description</label><textarea class="lock" readonly>'+a.description+'</textarea><label>Out Time</label><input id="out" type="time"><button class="r" onclick="finish()">Save Out Time & Complete Tuition</button>'}function finish(){let a=JSON.parse(localStorage.getItem('active')||'null'),o=out.value;if(!a||!o)return alert('Please enter Out Time.');let x=a.inTime.split(':').map(Number),y=o.split(':').map(Number),m=(y[0]*60+y[1])-(x[0]*60+x[1]);if(m<=0)return alert('Out Time must be after In Time.');let r=records();r.push({...a,outTime:o,actualHours:m/60,roundedHours:Math.round(m/15)*15/60});localStorage.setItem(RK,JSON.stringify(r));localStorage.removeItem('active');alert('Tuition completed successfully.');page('dashboard')}function f(n){return Number(n).toFixed(2)}function loadAttendance(){let a=records();if(!a.length){attbox.innerHTML='<p>No attendance records yet.</p>';return}let rows=a.map(r=>'<tr><td>'+r.date+'</td><td>'+r.student+'</td><td>'+r.inTime+'</td><td>'+r.outTime+'</td><td>'+r.description+'</td><td>'+f(r.actualHours)+'</td><td>'+f(r.roundedHours)+'</td></tr>').join('');let total=a.reduce((s,r)=>s+Number(r.roundedHours),0);attbox.innerHTML='<div class="wrap"><table><tr><th>Date</th><th>Student</th><th>In</th><th>Out</th><th>Description</th><th>Actual</th><th>Rounded</th></tr>'+rows+'</table></div><p class="total">Total Sessions: '+a.length+'<br>Total Rounded Hours: '+f(total)+'</p>'}function loadReport(){let mo=month.value||(()=>{let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')})();month.value=mo;let st=rstudent.value,a=records().filter(r=>{let p=r.date.split('-');return p[2]+'-'+p[1]===mo&&(st==='All Students'||r.student===st)});let ac=a.reduce((s,r)=>s+Number(r.actualHours),0),rd=a.reduce((s,r)=>s+Number(r.roundedHours),0);let rows=a.map(r=>'<tr><td>'+r.date+'</td><td>'+r.student+'</td><td>'+r.inTime+'</td><td>'+r.outTime+'</td><td>'+f(r.roundedHours)+'</td></tr>').join('');reportbox.innerHTML='<div class="wrap"><table><tr><th>Date</th><th>Student</th><th>In</th><th>Out</th><th>Rounded Hours</th></tr>'+rows+'</table></div><p class="total">Total Sessions: '+a.length+'<br>Total Actual Hours: '+f(ac)+'<br>Total Rounded Hours: '+f(rd)+'</p>'}function settings(){if(!nu.value||!np.value)return alert('Enter both username and password.');localStorage.setItem('tu',nu.value);localStorage.setItem('tp',np.value);alert('Updated successfully.');page('dashboard')}sd.value=today();</script></body></html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SHANKAR HOME TUITION</title>
+
+<style>
+body{font-family:Arial;margin:0;background:#f4f6f8}
+header{background:#17365d;color:#fff;text-align:center;padding:18px}
+main{max-width:850px;margin:auto;padding:15px}
+.card{background:#fff;padding:20px;margin:15px 0;border-radius:12px;box-shadow:0 2px 8px #0002}
+button{padding:12px 16px;margin:5px;border:0;border-radius:8px}
+.b{background:#17365d;color:#fff}
+.g{background:#198754;color:#fff}
+.r{background:#dc3545;color:#fff}
+.x{background:#ddd}
+input,select,textarea{width:100%;box-sizing:border-box;padding:11px;margin:6px 0 12px;border:1px solid #bbb;border-radius:7px;font-size:15px}
+textarea{min-height:75px}
+.page{display:none}
+.show{display:block}
+.menu button{width:100%;text-align:left}
+.lock{background:#eee}
+.wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #ddd;padding:8px}
+th{background:#17365d;color:#fff}
+.total{font-weight:bold}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>SHANKAR HOME TUITION</h1>
+<p>Faculty Attendance Management – Demo</p>
+</header>
+
+<main>
+
+<!-- LOGIN -->
+<section id="login" class="page show">
+<div class="card">
+<h2>Faculty Login</h2>
+
+<label>Username</label>
+<input id="loginUsername" value="faculty">
+
+<label>Password</label>
+<input id="loginPassword" type="password" value="1234">
+
+<button class="b" onclick="doLogin()">Login</button>
+
+<p>Demo Login: faculty / 1234</p>
+</div>
+</section>
+
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="page">
+<div class="card">
+
+<h2>Dashboard</h2>
+<p>Welcome, <b id="welcome"></b></p>
+
+<div class="menu">
+
+<button class="g" onclick="showPage('start')">
+🟢 Start Tuition
+</button>
+
+<button class="r" onclick="showPage('end');loadEnd()">
+🔴 End Tuition
+</button>
+
+<button class="b" onclick="showPage('attendance');loadAttendance()">
+📋 My Attendance
+</button>
+
+<button class="b" onclick="showPage('report');loadReport()">
+📊 Student-wise / Monthly Report
+</button>
+
+<button class="x" onclick="showPage('settings')">
+⚙️ Change Username / Password
+</button>
+
+<button class="r" onclick="doLogout()">
+🚪 Logout
+</button>
+
+</div>
+</div>
+</section>
+
+
+<!-- START TUITION -->
+<section id="start" class="page">
+<div class="card">
+
+<h2>🟢 Start Tuition</h2>
+
+<label>Date</label>
+<input id="startDate" readonly>
+
+<label>Student</label>
+<select id="studentName">
+<option value="">Select Student</option>
+<option>Eeshwar</option>
+<option>Nagulesh</option>
+</select>
+
+<label>In Time</label>
+<input id="inTime" type="time">
+
+<label>Description / Class Session</label>
+<textarea id="description"
+placeholder="Example: Mathematics - Proportional Reasoning"></textarea>
+
+<button class="g" onclick="startTuition()">
+Save / Start Tuition
+</button>
+
+<button class="x" onclick="showPage('dashboard')">
+Back
+</button>
+
+</div>
+</section>
+
+
+<!-- END TUITION -->
+<section id="end" class="page">
+<div class="card">
+
+<h2>🔴 End Tuition</h2>
+
+<div id="endBox"></div>
+
+<button class="x" onclick="showPage('dashboard')">
+Back
+</button>
+
+</div>
+</section>
+
+
+<!-- ATTENDANCE -->
+<section id="attendance" class="page">
+<div class="card">
+
+<h2>📋 My Attendance</h2>
+
+<div id="attendanceBox"></div>
+
+<button class="x" onclick="showPage('dashboard')">
+Back
+</button>
+
+</div>
+</section>
+
+
+<!-- REPORT -->
+<section id="report" class="page">
+<div class="card">
+
+<h2>📊 Student-wise / Monthly Report</h2>
+
+<label>Month</label>
+<input id="reportMonth" type="month"
+onchange="loadReport()">
+
+<label>Student</label>
+
+<select id="reportStudent"
+onchange="loadReport()">
+
+<option>All Students</option>
+<option>Eeshwar</option>
+<option>Nagulesh</option>
+
+</select>
+
+<div id="reportBox"></div>
+
+<button class="x" onclick="showPage('dashboard')">
+Back
+</button>
+
+</div>
+</section>
+
+
+<!-- SETTINGS -->
+<section id="settings" class="page">
+<div class="card">
+
+<h2>⚙️ Change Username / Password</h2>
+
+<label>New Username</label>
+<input id="newUsername">
+
+<label>New Password</label>
+<input id="newPassword" type="password">
+
+<button class="b" onclick="changeSettings()">
+Save Changes
+</button>
+
+<button class="x" onclick="showPage('dashboard')">
+Back
+</button>
+
+</div>
+</section>
+
+</main>
+
+
+<script>
+
+const RECORD_KEY = "shankarRecords";
+
+
+function getRecords(){
+
+return JSON.parse(
+localStorage.getItem(RECORD_KEY) || "[]"
+);
+
+}
+
+
+function today(){
+
+let d = new Date();
+
+return String(d.getDate()).padStart(2,"0")
++ "-"
++ String(d.getMonth()+1).padStart(2,"0")
++ "-"
++ d.getFullYear();
+
+}
+
+
+function showPage(id){
+
+document.querySelectorAll(".page")
+.forEach(function(page){
+
+page.classList.remove("show");
+
+});
+
+document.getElementById(id)
+.classList.add("show");
+
+if(id === "start"){
+
+document.getElementById("startDate").value =
+today();
+
+}
+
+}
+
+
+/* LOGIN */
+
+function doLogin(){
+
+let savedUsername =
+localStorage.getItem("tuitionUsername")
+|| "faculty";
+
+let savedPassword =
+localStorage.getItem("tuitionPassword")
+|| "1234";
+
+let username =
+document.getElementById("loginUsername").value;
+
+let password =
+document.getElementById("loginPassword").value;
+
+
+if(username === savedUsername &&
+password === savedPassword){
+
+document.getElementById("welcome")
+.textContent = username;
+
+showPage("dashboard");
+
+}else{
+
+alert("Invalid username or password.");
+
+}
+
+}
+
+
+/* LOGOUT */
+
+function doLogout(){
+
+showPage("login");
+
+}
+
+
+/* START TUITION */
+
+function startTuition(){
+
+let student =
+document.getElementById("studentName").value;
+
+let time =
+document.getElementById("inTime").value;
+
+let description =
+document.getElementById("description").value;
+
+
+if(!student || !time){
+
+alert("Please select Student and enter In Time.");
+
+return;
+
+}
+
+
+if(localStorage.getItem("activeTuition")){
+
+alert("An active tuition already exists.");
+
+return;
+
+}
+
+
+let data = {
+
+date: today(),
+
+student: student,
+
+inTime: time,
+
+description: description
+
+};
+
+
+localStorage.setItem(
+"activeTuition",
+JSON.stringify(data)
+);
+
+
+alert(
+"In Time saved successfully. It is now LOCKED."
+);
+
+
+document.getElementById("studentName").value = "";
+
+document.getElementById("inTime").value = "";
+
+document.getElementById("description").value = "";
+
+
+showPage("dashboard");
+
+}
+
+
+/* END TUITION */
+
+function loadEnd(){
+
+let active =
+JSON.parse(
+localStorage.getItem("activeTuition")
+|| "null"
+);
+
+
+if(!active){
+
+document.getElementById("endBox")
+.innerHTML =
+"<p>No tuition session is waiting for Out Time.</p>";
+
+return;
+
+}
+
+
+document.getElementById("endBox").innerHTML =
+
+"<label>Date</label>" +
+"<input class='lock' readonly value='" +
+active.date +
+"'>" +
+
+"<label>Student</label>" +
+"<input class='lock' readonly value='" +
+active.student +
+"'>" +
+
+"<label>In Time 🔒</label>" +
+"<input class='lock' readonly value='" +
+active.inTime +
+"'>" +
+
+"<label>Description</label>" +
+
+"<textarea class='lock' readonly>" +
+active.description +
+"</textarea>" +
+
+"<label>Out Time</label>" +
+
+"<input id='outTime' type='time'>" +
+
+"<button class='r' onclick='finishTuition()'>" +
+"Save Out Time & Complete Tuition" +
+"</button>";
+
+}
+
+
+/* FINISH TUITION */
+
+function finishTuition(){
+
+let active =
+JSON.parse(
+localStorage.getItem("activeTuition")
+|| "null"
+);
+
+let outTime =
+document.getElementById("outTime").value;
+
+
+if(!active || !outTime){
+
+alert("Please enter Out Time.");
+
+return;
+
+}
+
+
+let inParts =
+active.inTime.split(":").map(Number);
+
+let outParts =
+outTime.split(":").map(Number);
+
+
+let inMinutes =
+inParts[0] * 60 + inParts[1];
+
+let outMinutes =
+outParts[0] * 60 + outParts[1];
+
+
+let minutes =
+outMinutes - inMinutes;
+
+
+if(minutes <= 0){
+
+alert("Out Time must be after In Time.");
+
+return;
+
+}
+
+
+let records =
+getRecords();
+
+
+records.push({
+
+...active,
+
+outTime: outTime,
+
+actualHours: minutes / 60,
+
+roundedHours:
+Math.round(minutes / 15) * 15 / 60
+
+});
+
+
+localStorage.setItem(
+RECORD_KEY,
+JSON.stringify(records)
+);
+
+
+localStorage.removeItem(
+"activeTuition"
+);
+
+
+alert(
+"Tuition completed successfully."
+);
+
+
+showPage("dashboard");
+
+}
+
+
+/* NUMBER FORMAT */
+
+function formatNumber(number){
+
+return Number(number).toFixed(2);
+
+}
+
+
+/* ATTENDANCE */
+
+function loadAttendance(){
+
+let records =
+getRecords();
+
+
+if(!records.length){
+
+document.getElementById("attendanceBox")
+.innerHTML =
+"<p>No attendance records yet.</p>";
+
+return;
+
+}
+
+
+let rows =
+records.map(function(record){
+
+return "<tr>" +
+
+"<td>" + record.date + "</td>" +
+
+"<td>" + record.student + "</td>" +
+
+"<td>" + record.inTime + "</td>" +
+
+"<td>" + record.outTime + "</td>" +
+
+"<td>" + record.description + "</td>" +
+
+"<td>" +
+formatNumber(record.actualHours) +
+"</td>" +
+
+"<td>" +
+formatNumber(record.roundedHours) +
+"</td>" +
+
+"</tr>";
+
+}).join("");
+
+
+let total =
+records.reduce(
+function(sum,record){
+
+return sum +
+Number(record.roundedHours);
+
+},0);
+
+
+document.getElementById("attendanceBox")
+.innerHTML =
+
+"<div class='wrap'>" +
+
+"<table>" +
+
+"<tr>" +
+
+"<th>Date</th>" +
+"<th>Student</th>" +
+"<th>In</th>" +
+"<th>Out</th>" +
+"<th>Description</th>" +
+"<th>Actual</th>" +
+"<th>Rounded</th>" +
+
+"</tr>" +
+
+rows +
+
+"</table>" +
+
+"</div>" +
+
+"<p class='total'>" +
+
+"Total Sessions: " +
+records.length +
+
+"<br>Total Rounded Hours: " +
+formatNumber(total) +
+
+"</p>";
+
+}
+
+
+/* REPORT */
+
+function loadReport(){
+
+let monthInput =
+document.getElementById("reportMonth");
+
+
+let month =
+monthInput.value;
+
+
+if(!month){
+
+let d = new Date();
+
+month =
+d.getFullYear() +
+"-" +
+String(d.getMonth()+1)
+.padStart(2,"0");
+
+monthInput.value = month;
+
+}
+
+
+let student =
+document.getElementById("reportStudent").value;
+
+
+let records =
+getRecords().filter(function(record){
+
+let parts =
+record.date.split("-");
+
+let recordMonth =
+parts[2] +
+"-" +
+parts[1];
+
+
+return recordMonth === month &&
+(student === "All Students" ||
+record.student === student);
+
+});
+
+
+let actual =
+records.reduce(
+function(sum,record){
+
+return sum +
+Number(record.actualHours);
+
+},0);
+
+
+let rounded =
+records.reduce(
+function(sum,record){
+
+return sum +
+Number(record.roundedHours);
+
+},0);
+
+
+let rows =
+records.map(function(record){
+
+return "<tr>" +
+
+"<td>" + record.date + "</td>" +
+
+"<td>" + record.student + "</td>" +
+
+"<td>" + record.inTime + "</td>" +
+
+"<td>" + record.outTime + "</td>" +
+
+"<td>" +
+formatNumber(record.roundedHours) +
+"</td>" +
+
+"</tr>";
+
+}).join("");
+
+
+document.getElementById("reportBox")
+.innerHTML =
+
+"<div class='wrap'>" +
+
+"<table>" +
+
+"<tr>" +
+
+"<th>Date</th>" +
+"<th>Student</th>" +
+"<th>In</th>" +
+"<th>Out</th>" +
+"<th>Rounded Hours</th>" +
+
+"</tr>" +
+
+rows +
+
+"</table>" +
+
+"</div>" +
+
+"<p class='total'>" +
+
+"Total Sessions: " +
+records.length +
+
+"<br>Total Actual Hours: " +
+formatNumber(actual) +
+
+"<br>Total Rounded Hours: " +
+formatNumber(rounded) +
+
+"</p>";
+
+}
+
+
+/* SETTINGS */
+
+function changeSettings(){
+
+let username =
+document.getElementById("newUsername").value;
+
+let password =
+document.getElementById("newPassword").value;
+
+
+if(!username || !password){
+
+alert(
+"Enter both username and password."
+);
+
+return;
+
+}
+
+
+localStorage.setItem(
+"tuitionUsername",
+username
+);
+
+localStorage.setItem(
+"tuitionPassword",
+password
+);
+
+
+alert(
+"Username and Password updated successfully."
+);
+
+
+document.getElementById("newUsername").value = "";
+
+document.getElementById("newPassword").value = "";
+
+
+showPage("dashboard");
+
+}
+
+
+/* INITIAL DATE */
+
+document.getElementById("startDate")
+.value = today();
+
+</script>
+
+</body>
+</html>
